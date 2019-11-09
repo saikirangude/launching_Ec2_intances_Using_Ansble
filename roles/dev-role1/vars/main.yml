@@ -1,0 +1,26 @@
+---
+# vars file for dev-role
+
+aws_access_key: "AKIAJYLO2XSYQE2PFO2Q"
+aws_secret_key: "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"
+region: "us-east-1"
+
+# VPC
+vpc_cidr: 10.10.0.0/24
+vpc_name: "Ansible-VPC"
+vpc_id: vpc-0272c06ec571a9ecd
+
+# Subnet
+subnet_name: "Ansible-Subnet"
+subnet_cidr: 10.10.0.0/26
+subnet_id: subnet-0b5c7beb430048c7c
+
+securitygroup_name: "Ansible-Security-Group"
+securitygroup_id: sg-0bc3717d8fdd25750 
+
+ec2_tag: "Ansible-Playbook"
+
+#The local path to which we would save our EC2 Private Key
+#ec2_key_directory: "/etc/ansible/roles/Test-Role/"
+keypair_name: "K8s-Master"
+

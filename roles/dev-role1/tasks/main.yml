@@ -1,0 +1,84 @@
+---
+# tasks file for dev-role
+- name: create VPC
+  ec2_vpc_net:
+    name: "{{ vpc_name }}"
+    cidr_block: "{{ vpc_cidr }}"
+    region: "{{ region }}"
+    state: present
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+  register: vpc
+
+- name: associate subnet to the VPC
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ region }}"
+    cidr: "{{ subnet_cidr }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    map_public: yes
+    resource_tags:
+      Name: "{{ subnet_name }}"
+  register: subnet
+
+# update the CIDR address in the SSH port section.
+
+- name: Create Security Group
+  ec2_group:
+    name: Web DMZ
+    description: DMZ Security Group
+    vpc_id: "{{ vpc_id }}"
+    region: "{{ region }}"
+    aws_access_key: "{{ aws_access_key }}"
+    aws_secret_key: "{{ aws_secret_key }}"
+    rules:
+      - proto: tcp
+        ports:
+        - 80
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        ports:
+        - 22
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        ports:
+        - 8080
+        cidr_ip: 0.0.0.0/0
+      - proto: tcp
+        ports:
+        - 443
+        cidr_ip: 0.0.0.0/0
+  register: security_group
+
+- name: Create EC2 server
+  local_action: ec2
+                image=ami-0c322300a1dd5dc79
+                wait=true
+                instance_type=t2.micro
+                region="{{ region }}"
+                group_id="{{ securitygroup_id }}"
+                vpc_subnet_id="{{ subnet_id }}"
+                key_name="{{ keypair_name  }}"
+                count=1
+                aws_access_key="{{ aws_access_key }}"
+                aws_secret_key="{{ aws_secret_key }}"
+  register: ec2
+
+- name: Install Java 1.8
+  yum: name=java-1.8.0-openjdk state=present
+
+- name: add group "tomcat"
+  group: name=tomcat
+
+- name: add user "tomcat"
+  user: name=tomcat group=tomcat home=/usr/share/tomcat createhome=no
+  become: True
+  become_method: sudo
+
+- name: Download Tomcat
+  get_url: url=http://archive.apache.org/dist/tomcat/tomcat-8/v8.5.47/bin/apache-tomcat-8.5.47.tar.gz dest=/opt/apache-tomcat-8.5.47.tar.gz
+
+- name: Extract archive
+  command: chdir=/usr/share /bin/tar xvf /opt/apache-tomcat-8.5.47.tar.gz -C /opt/ creates=/opt/apache-tomcat-8.5.47

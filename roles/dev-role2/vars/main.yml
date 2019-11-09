@@ -1,0 +1,10 @@
+---
+# vars file for dev-role2
+
+key_name: Ansible-Server-Ubuntu-1 
+region: us-east-1
+image: ami-0c322300a1dd5dc79 # https://cloud-images.ubuntu.com/locator/ec2/
+id: "web-app"
+sec_group: "{{ id }}-sec"
+ec2_access_key: AKIAJYLO2XSYQE2PFO2Q
+ec2_secret_key: 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
